@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public List<GameObject> NearObj = new List<GameObject>();
-
+    public static PlayerController Instance;
     [Header("Space: grass (testgrass)")]
     [Tooltip("Horizontal distance within which Space collects the object named \"testgrass\".")]
     public float testGrassPickupRadius = 3.5f;
@@ -28,12 +28,16 @@ public class PlayerController : MonoBehaviour
     bool interactionBusy;
     float nextTreeChopTime;
 
+    // public GameObject NearObj;
+
     void Start()
     {
+        Instance = this;
         animator = GetComponent<Animator>();
         controller = GetComponent<CharacterController>();
     }
-
+   public  GameObject NearObjItem;
+    public float distance = -1;
     void Update()
     {
         float h = Input.GetAxis("Horizontal");
@@ -44,14 +48,90 @@ public class PlayerController : MonoBehaviour
         controller.SimpleMove(dir * speed);
 
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        {
+            MoveToNearObj = false;
             animator.SetBool("run", true);
-        else
+            interactionBusy = true;
+        }
+
+        else {
             animator.SetBool("run", false);
+            interactionBusy = false;
+        }
+           
 
-        if (Input.GetKeyDown(KeyCode.Space) && !interactionBusy)
-            TrySpaceInteract();
+        //if (Input.GetKeyDown(KeyCode.Space) && !interactionBusy)
+        //    NearObj
+        //TrySpaceInteract();
+        if (Input.GetKeyDown(KeyCode.Space) && NearObj.Count > 0 && !interactionBusy)
+        {
+         
+            if (NearObjItem.tag=="Tree"&& NearObjItem.gameObject.activeSelf)
+            {
+                MoveToNearObj=true;
+            }
+            else
+            {
+                NearObj.Remove(NearObjItem);
+                NearObjItem = null;
+            }
+           
+        }
+        
+       
+        if (NearObj.Count > 0)
+        {
+            distance = 10000;
+            foreach (var item in NearObj)
+            {
+
+     
+                 
+                    if (HorizontalDistance(item.transform.position, transform.position) < distance)
+                    {
+                        distance = HorizontalDistance(item.transform.position, transform.position);
+                        NearObjItem = item;
+                    }
+
+            //    Debug.Log(item.name + " " + HorizontalDistance(item.transform.position, transform.position));
+               // HorizontalDistance(item.transform.position, transform.position);
+            }
+        }
+
+
+        if (MoveToNearObj)
+        {
+
+           Vector3 DirectPosition =   new Vector3(NearObjItem.transform.position.x, transform.position.y, NearObjItem.transform.position.z);
+            Vector3 lookDirection = DirectPosition - transform.position; // 计算朝向向量
+            lookDirection.y = 0f; // 忽略Y轴高度差异
+            lookDirection.Normalize(); // 标准化向量
+            transform.rotation = Quaternion.LookRotation(lookDirection); // 更新角色朝向
+
+            if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+            {
+                MoveToNearObj = false;
+                GetComponent<Animator>().Play("CutTree");
+            }
+            else
+            {
+                transform.Translate((DirectPosition - transform.position) * Time.deltaTime * speed, Space.World);
+                animator.SetBool("run", true);
+                if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+                {
+                    MoveToNearObj = false;
+                    GetComponent<Animator>().Play("CutTree");
+                    animator.SetBool("run", false);
+                    //  StartCoroutine(TreeChopRoutine(NearObjItem.GetComponent<TreeChoppable>()));
+                }
+            }
+          //  transform.LookAt(DirectPosition.normalized+transform.position  , Vector3.up);
+
+
+        }
+  
     }
-
+    bool MoveToNearObj;
     static float HorizontalDistance(Vector3 a, Vector3 b)
     {
         a.y = 0f;
@@ -106,8 +186,12 @@ public class PlayerController : MonoBehaviour
         return FindObjectOfType<TreeChoppable>();
     }
 
-    IEnumerator TreeChopRoutine(TreeChoppable tree)
+    IEnumerator TreeChopRoutine(TreeChoppable tree )
     {
+        if (tree==null)
+        {
+            tree = NearObjItem.GetComponent<TreeChoppable>();
+        }
         interactionBusy = true;
         tree.Chop();
         nextTreeChopTime = Time.time + treeChopCooldown;
@@ -134,4 +218,7 @@ public class PlayerController : MonoBehaviour
 
         interactionBusy = false;
     }
+
+
+
 }

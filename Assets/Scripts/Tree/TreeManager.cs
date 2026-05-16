@@ -17,6 +17,8 @@ public class TreeManager : MonoBehaviour
     
     public TreeStage treeStage;
 
+    public bool isDead;
+
     private void Awake()
     {
         SetCurrentStage();
@@ -24,9 +26,17 @@ public class TreeManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        TimeManager.instance.ValueChanged += GrowUp;
+
+        StartCoroutine(GetTimeObj());
     }
 
+    IEnumerator GetTimeObj() {
+        yield return new WaitUntil(() => TimeManager.instance != null);
+
+            TimeManager.instance.ValueChanged += GrowUp;
+
+       
+    }
     // Update is called once per frame
     void Update()
     {
@@ -34,27 +44,34 @@ public class TreeManager : MonoBehaviour
     }
 
     public void GrowUp(object sender, EventArgs e) {
-
-        if ((int)treeStage== 4)
+        if (!isDead)
         {
-            transform.GetChild(1).GetChild(0).gameObject.SetActive(true);
-            transform.GetChild(1).GetChild(((int)treeStage) - 1).gameObject.SetActive(false);
-        }
-        else
-        {
-            if ((int)treeStage == 0)
+            if ((int)treeStage == 4)
             {
-                transform.GetChild(0).gameObject.SetActive(false);
+                transform.GetChild(1).GetChild(0).gameObject.SetActive(true);
+                transform.GetChild(1).GetChild(((int)treeStage) - 1).gameObject.SetActive(false);
             }
             else
             {
-                transform.GetChild(1).GetChild(((int)treeStage) - 1).gameObject.SetActive(false);
+                if ((int)treeStage == 0)
+                {
+                    transform.GetChild(0).gameObject.SetActive(false);
+                }
+                else
+                {
+                    transform.GetChild(1).GetChild(((int)treeStage) - 1).gameObject.SetActive(false);
+                }
+
+                transform.GetChild(1).GetChild(((int)treeStage)).gameObject.SetActive(true);
+
             }
-          
-            transform.GetChild(1).GetChild(((int)treeStage)).gameObject.SetActive(true);
-  
+            SetCurrentStage();
         }
-        SetCurrentStage();
+        else
+        {
+
+        }
+       
     }
 
     public void SetCurrentStage() {

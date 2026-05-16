@@ -12,32 +12,32 @@ public class GrassTrigger : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 PlayerController pc = other.GetComponent<PlayerController>();
-                if (pc != null && pc.NearObj.Contains(gameObject))
-                {
-                    other.GetComponent<Animator>().Play("Gathering");
-                    Invoke(nameof(WaitDestroy), 2);
-                }
+                //if (pc != null && pc.NearObj.Contains(gameObject))
+                //{
+                //    other.GetComponent<Animator>().Play("Gathering");
+                //    Invoke(nameof(WaitDestroy), 2);
+                //}
             }
 
         }
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.GetComponent<PlayerController>()!=null&& other.GetComponent<PlayerController>().NearObj.Contains(this.gameObject))
-        {
-            other.GetComponent<PlayerController>().NearObj.Remove(this.gameObject);
-        }
+    //private void OnTriggerExit(Collider other)
+    //{
+    //    if (other.GetComponent<PlayerController>()!=null&& other.GetComponent<PlayerController>().NearObj.Contains(this.gameObject))
+    //    {
+    //        other.GetComponent<PlayerController>().NearObj.Remove(this.gameObject);
+    //    }
         
-    }
+    //}
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.GetComponent<PlayerController>() != null && !other.GetComponent<PlayerController>().NearObj.Contains(this.gameObject))
-        {
-            other.GetComponent<PlayerController>().NearObj.Add(this.gameObject);
-        }
-    }
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (other.GetComponent<PlayerController>() != null && !other.GetComponent<PlayerController>().NearObj.Contains(this.gameObject))
+    //    {
+    //        other.GetComponent<PlayerController>().NearObj.Add(this.gameObject);
+    //    }
+    //}
 
     public void WaitDestroy() {
         GetComponent<ItemOnWorld>().AddNewItem();

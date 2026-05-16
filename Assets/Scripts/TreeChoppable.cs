@@ -2,24 +2,24 @@ using UnityEngine;
 
 public class TreeChoppable : MonoBehaviour
 {
-    public Animator treeAnimator;
+    public Animation treeAnimator;
     public GameObject treeCompleteVisual;
     public int hitsToComplete = 10;
 
     int hits;
-    const string ShakeStateName = "TreeShake";
+    const string ShakeStateName = "TreeShakeAnim";
 
     void Awake()
     {
         if (treeAnimator == null)
-            treeAnimator = GetComponent<Animator>();
+            treeAnimator =GetComponentInParent<Animation>();
         if (treeCompleteVisual == null)
         {
-            Transform t = transform.Find("TreeComplete");
-            if (t != null)
-                treeCompleteVisual = t.gameObject;
-            else
-                CreateDemoTreeComplete();
+           // Transform t = transform.Find("TreeComplete");
+            //if (t != null)
+            //    treeCompleteVisual = t.gameObject;
+            //else
+            //    CreateDemoTreeComplete();
         }
     }
 
@@ -41,10 +41,14 @@ public class TreeChoppable : MonoBehaviour
             return;
 
         hits++;
-        if (treeAnimator != null)
-            treeAnimator.Play(ShakeStateName, 0, 0f);
 
-        if (hits >= hitsToComplete && treeCompleteVisual != null)
-            treeCompleteVisual.SetActive(false);
+        if (treeAnimator != null)
+            treeAnimator.Play(ShakeStateName);
+
+        if (hits >= hitsToComplete) {
+            treeAnimator.Play("FallDown");
+            transform.parent.parent.parent.GetComponentInChildren<TreeManager>().isDead = true;
+        }
+           
     }
 }
