@@ -58,25 +58,12 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("run", false);
             interactionBusy = false;
         }
-           
+
 
         //if (Input.GetKeyDown(KeyCode.Space) && !interactionBusy)
         //    NearObj
         //TrySpaceInteract();
-        if (Input.GetKeyDown(KeyCode.Space) && NearObj.Count > 0 && !interactionBusy)
-        {
-         
-            if (NearObjItem.tag=="Tree"&& NearObjItem.gameObject.activeSelf)
-            {
-                MoveToNearObj=true;
-            }
-            else
-            {
-                NearObj.Remove(NearObjItem);
-                NearObjItem = null;
-            }
-           
-        }
+      
         
        
         if (NearObj.Count > 0)
@@ -107,29 +94,84 @@ public class PlayerController : MonoBehaviour
             lookDirection.y = 0f; // 忽略Y轴高度差异
             lookDirection.Normalize(); // 标准化向量
             transform.rotation = Quaternion.LookRotation(lookDirection); // 更新角色朝向
-
-            if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+            if (NearObjItem.tag == "Tree")
             {
-                MoveToNearObj = false;
-                GetComponent<Animator>().Play("CutTree");
-            }
-            else
-            {
-                transform.Translate((DirectPosition - transform.position) * Time.deltaTime * speed, Space.World);
-                animator.SetBool("run", true);
                 if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
                 {
                     MoveToNearObj = false;
                     GetComponent<Animator>().Play("CutTree");
-                    animator.SetBool("run", false);
-                    //  StartCoroutine(TreeChopRoutine(NearObjItem.GetComponent<TreeChoppable>()));
                 }
+                else
+                {
+                    transform.Translate((DirectPosition - transform.position) * Time.deltaTime * speed, Space.World);
+                    animator.SetBool("run", true);
+                    if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+                    {
+                        MoveToNearObj = false;
+                        GetComponent<Animator>().Play("CutTree");
+                        animator.SetBool("run", false);
+                        //  StartCoroutine(TreeChopRoutine(NearObjItem.GetComponent<TreeChoppable>()));
+                    }
+                }
+
             }
-          //  transform.LookAt(DirectPosition.normalized+transform.position  , Vector3.up);
+
+
+            if (NearObjItem.tag == "Log")
+            {
+                if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+                {
+                    MoveToNearObj = false;
+                    StartCoroutine(PickupTestLogRoutine(NearObjItem, NearObjItem.GetComponent<ItemOnWorld>()));
+                }
+                else
+                {
+                    transform.Translate((DirectPosition - transform.position) * Time.deltaTime * speed, Space.World);
+                    animator.SetBool("run", true);
+                    if (Vector3.Distance(DirectPosition, transform.position) < 0.7f)
+                    {
+                        MoveToNearObj = false;
+                        StartCoroutine(PickupTestLogRoutine(NearObjItem, NearObjItem.GetComponent<ItemOnWorld>()));
+                        animator.SetBool("run", false);
+                        //  StartCoroutine(TreeChopRoutine(NearObjItem.GetComponent<TreeChoppable>()));
+                    }
+                }
+
+              
+            }
+            //  transform.LookAt(DirectPosition.normalized+transform.position  , Vector3.up);
 
 
         }
-  
+
+
+        if (NearObjItem!=null&&NearObjItem.gameObject.activeSelf == false)
+        {
+
+            NearObj.Remove(NearObjItem);
+             NearObjItem = null;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space) && NearObj.Count > 0 && !interactionBusy)
+        {
+
+            if (NearObjItem.tag == "Tree"|| NearObjItem.tag == "Log")
+            {
+
+                MoveToNearObj = true;
+
+            }
+            //else if (NearObjItem.tag == "Log")
+            //{
+            //    MoveToNearObj = true;
+            //    StartCoroutine(PickupTestLogRoutine(NearObjItem, NearObjItem.GetComponent<ItemOnWorld>()));
+            //}
+
+
+
+        }
+
+
     }
     bool MoveToNearObj;
     static float HorizontalDistance(Vector3 a, Vector3 b)
@@ -197,6 +239,7 @@ public class PlayerController : MonoBehaviour
         nextTreeChopTime = Time.time + treeChopCooldown;
         yield return new WaitForSeconds(treeChopCooldown);
         interactionBusy = false;
+
     }
 
     IEnumerator PickupTestGrassRoutine(GameObject grass, ItemOnWorld itemOnWorld)
@@ -214,6 +257,28 @@ public class PlayerController : MonoBehaviour
         {
             itemOnWorld.AddNewItem();
             Destroy(grass);
+        }
+
+        interactionBusy = false;
+    }
+
+    IEnumerator PickupTestLogRoutine(GameObject log, ItemOnWorld itemOnWorld)
+    {
+        interactionBusy = true;
+
+        bool playGather = animator != null && animator.HasState(0, GatheringStateHash);
+        if (playGather)
+            animator.Play("Gathering", 0, 0f);
+
+        if (playGather)
+            // yield return new WaitForSeconds(2f);
+            yield return  null;
+        if (log != null && itemOnWorld != null)
+        {
+            itemOnWorld.AddNewItem();
+            NearObj.Remove(log);
+            NearObjItem = null;
+            Destroy(log);
         }
 
         interactionBusy = false;
